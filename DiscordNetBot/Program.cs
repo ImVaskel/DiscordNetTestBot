@@ -7,6 +7,7 @@ using DiscordNetBot.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace DiscordNetBot
 {
@@ -26,10 +27,12 @@ namespace DiscordNetBot
                 .ConfigureServices((context, services) =>
                 {
                     services.Configure<DiscordSettings>(context.Configuration.GetSection("discord"));
+                    services.AddSingleton(provider => provider.GetRequiredService<IOptions<DiscordSettings>>().Value);
+                    
+                    services.AddSingleton<IBotService, BotHostedService>();
+                    services.AddHostedService(provider => provider.GetRequiredService<IBotService>());
                     services.AddSingleton(provider =>
                         provider.GetRequiredService<CommandHandler>().InstallCommandsAsync());
-
-                    services.AddSingleton<IBotService, BotHostedService>();
                 });
             
             using var builtHost = host.Build();
