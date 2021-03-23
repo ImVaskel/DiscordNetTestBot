@@ -1,6 +1,9 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
+using Discord;
+using Discord.Commands;
 using DiscordNetBot.Interfaces;
 using DiscordNetBot.Services;
 using DiscordNetBot.Settings;
@@ -32,7 +35,19 @@ namespace DiscordNetBot
                     services.AddSingleton<IBotService, BotHostedService>();
                     services.AddHostedService(provider => provider.GetRequiredService<IBotService>());
                     services.AddSingleton(provider =>
-                        provider.GetRequiredService<CommandHandler>().InstallCommandsAsync());
+                    {
+                        var commandService = new CommandService(new CommandServiceConfig
+                        {
+                            CaseSensitiveCommands = false,
+                            DefaultRunMode = RunMode.Sync,
+                            LogLevel = LogSeverity.Verbose
+                        });
+                        commandService.AddModulesAsync(Assembly.GetEntryAssembly(), provider);
+                        
+                        return commandService;
+                    });
+                    services.AddHostedService(provider => provider.GetRequiredService<IBotService>());
+                    services.AddHostedService<CommandHostedService>();    
                 });
             
             using var builtHost = host.Build();

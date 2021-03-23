@@ -92,7 +92,8 @@ namespace DiscordNetBot.Services
                 ConnectionTimeout = 30000,
                 DefaultRetryMode = RetryMode.AlwaysRetry,
                 LogLevel = LogSeverity.Debug,
-                UseSystemClock = true
+                UseSystemClock = true,
+                GatewayIntents = GatewayIntents.Guilds | GatewayIntents.GuildMembers | GatewayIntents.GuildMessages
             });
 
             DiscordClient.LoggedIn += BotLoggedIn;
@@ -100,8 +101,6 @@ namespace DiscordNetBot.Services
             DiscordClient.Log += BotLog;
 
             var token = _config.Token;
-            
-            await _host.Services.GetRequiredService<CommandHandler>().InstallCommandsAsync();
             
             await DiscordClient.LoginAsync(TokenType.Bot, token);
             await DiscordClient.StartAsync();
