@@ -10,13 +10,14 @@ using DiscordNetBot.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace DiscordNetBot
 {
     class Program
     {
-        static async Task Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var host = Host.CreateDefaultBuilder(args)
                 .ConfigureHostConfiguration(builder =>
@@ -27,13 +28,28 @@ namespace DiscordNetBot
                 {
                     builder.AddJsonFile("appsettings.json", optional: false);
                 })
+                .ConfigureLogging((context, builder) =>
+                {
+                    builder.ClearProviders();
+
+                    if (context.HostingEnvironment.IsDevelopment())
+                    {
+                        builder.AddDebug();
+                    }
+
+                    builder.AddSystemdConsole(o =>
+                    {
+                        o.TimestampFormat = "[dd/MM/yyyy HH:mm:ss] ";
+                    });
+                })
                 .ConfigureServices((context, services) =>
                 {
+                    // Add configuration
                     services.Configure<DiscordSettings>(context.Configuration.GetSection("discord"));
                     services.AddSingleton(provider => provider.GetRequiredService<IOptions<DiscordSettings>>().Value);
                     
+                    // Add discord
                     services.AddSingleton<IBotService, BotHostedService>();
-                    services.AddHostedService(provider => provider.GetRequiredService<IBotService>());
                     services.AddSingleton(provider =>
                     {
                         var commandService = new CommandService(new CommandServiceConfig
@@ -42,12 +58,15 @@ namespace DiscordNetBot
                             DefaultRunMode = RunMode.Sync,
                             LogLevel = LogSeverity.Verbose
                         });
+
                         commandService.AddModulesAsync(Assembly.GetEntryAssembly(), provider);
-                        
+
                         return commandService;
                     });
+                    
+                    // add hosted services;
                     services.AddHostedService(provider => provider.GetRequiredService<IBotService>());
-                    services.AddHostedService<CommandHostedService>();    
+                    services.AddHostedService<CommandHostedService>();
                 });
             
             using var builtHost = host.Build();
