@@ -1,4 +1,7 @@
-﻿using Discord;
+﻿using System;
+using System.Drawing;
+using Discord;
+using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 
 namespace DiscordNetBot.Extensions
@@ -17,6 +20,16 @@ namespace DiscordNetBot.Extensions
                 LogSeverity.Debug => LogLevel.Debug,
                 _ => LogLevel.Debug
             };
+        }
+
+        public static EmbedBuilder WithInvisible(this EmbedBuilder builder)
+        {
+            return builder.WithColor(47, 49, 54);
+        }
+
+        public static String IsBotHumanize(this SocketGuildUser user)
+        {
+            return user.IsBot ? "Yes" : "No";
         }
     }
 }

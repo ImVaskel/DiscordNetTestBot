@@ -17,7 +17,6 @@ namespace DiscordNetBot.Services
         private readonly ILogger<BotHostedService> _logger;
         private readonly DiscordSettings _config;
         private readonly IHostApplicationLifetime _applicationLifetime;
-        private readonly IHost _host;
 
         public DiscordSocketClient DiscordClient { get; private set; }
         
@@ -31,8 +30,16 @@ namespace DiscordNetBot.Services
             _config = config;
             _logger = logger;
             _applicationLifetime = applicationLifetime;
-            DiscordClient = new DiscordSocketClient();
-            _host = host;
+
+            //configure intents
+            var socketConfig = new DiscordSocketConfig
+            {
+                AlwaysDownloadUsers = true,
+                GatewayIntents = 
+                    GatewayIntents.Guilds | GatewayIntents.GuildEmojis | GatewayIntents.GuildMembers | GatewayIntents.GuildMessages | GatewayIntents.GuildMessageReactions 
+            };
+            
+            DiscordClient = new DiscordSocketClient(socketConfig);
         }
 
         public void ExecuteHandlerAsynchronously<TReturn>(Func<DiscordSocketClient, Task<TReturn>> handler, Action<TReturn> callback)
@@ -93,7 +100,6 @@ namespace DiscordNetBot.Services
                 DefaultRetryMode = RetryMode.AlwaysRetry,
                 LogLevel = LogSeverity.Debug,
                 UseSystemClock = true,
-                GatewayIntents = GatewayIntents.Guilds | GatewayIntents.GuildMembers | GatewayIntents.GuildMessages
             });
 
             DiscordClient.LoggedIn += BotLoggedIn;

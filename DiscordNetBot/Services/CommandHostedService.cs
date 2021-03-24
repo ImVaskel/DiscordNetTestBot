@@ -38,6 +38,7 @@ namespace DiscordNetBot.Services
             _commandService = commandService;
             _config = config;
             Services = services;
+            
         }
         
         private Task LogCommand(LogMessage arg)

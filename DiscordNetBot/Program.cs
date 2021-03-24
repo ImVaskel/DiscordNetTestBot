@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using DiscordNetBot.Interfaces;
 using DiscordNetBot.Services;
 using DiscordNetBot.Settings;
@@ -29,20 +30,20 @@ namespace DiscordNetBot
                     builder.AddJsonFile("appsettings.json", optional: false);
                 })
                 .ConfigureLogging((context, builder) =>
-                {
-                    builder.ClearProviders();
-
-                    if (context.HostingEnvironment.IsDevelopment())
                     {
-                        builder.AddDebug();
-                    }
+                        builder.ClearProviders();
 
-                    builder.AddSystemdConsole(o =>
-                    {
-                        o.TimestampFormat = "[dd/MM/yyyy HH:mm:ss] ";
-                    });
-                })
-                .ConfigureServices((context, services) =>
+                        if (context.HostingEnvironment.IsDevelopment())
+                        {
+                            builder.AddDebug();
+                        }
+
+                        builder.AddSystemdConsole(o =>
+                        {
+                            o.TimestampFormat = "[dd/MM/yyyy HH:mm:ss] ";
+                        });
+                    })
+                    .ConfigureServices((context, services) =>
                 {
                     // Add configuration
                     services.Configure<DiscordSettings>(context.Configuration.GetSection("discord"));
@@ -50,6 +51,7 @@ namespace DiscordNetBot
                     
                     // Add discord
                     services.AddSingleton<IBotService, BotHostedService>();
+                    //services.AddSingleton<DiscordSocketClient>();
                     services.AddSingleton(provider =>
                     {
                         var commandService = new CommandService(new CommandServiceConfig
